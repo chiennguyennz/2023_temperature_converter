@@ -1,5 +1,5 @@
 from tkinter import *
-
+from functools import partial # To prevent unwanted windows
 
 class Converter:
 
@@ -24,17 +24,24 @@ class Converter:
                                      command=self.to_help)
         self.to_help_button.grid(row=1, column=0, padx=5, pady=5)
 
-    @staticmethod
-    def to_help():
-        DisplayHelp()
+
+    def to_help(self):
+        DisplayHelp(self)
 
 
 class DisplayHelp:
 
-    def __init__(self):
+    def __init__(self, partner):
         background = "#ffe6cc"
-
         self.help_box = Toplevel()
+
+        # disable help button
+        partner.to_help_button.config(state=DISABLED)
+
+        # if users press cross at top, closes help and
+        # 'releases' help button
+        self.help_box.protocol('WM_DELETE_WINDOW',
+                               partial(self.close_help, partner))
 
         self.help_frame = Frame(self.help_box, width=300, height=200,
                                 bg=background)
@@ -65,8 +72,17 @@ class DisplayHelp:
         self.dismiss_button = Button(self.help_frame,
                                      font=("Arial", "12", "bold"),
                                      text="Dismiss", bg="#CC6600",
-                                     fg="#FFFFFF", command=self.help_box.destroy)
+                                     fg="#FFFFFF",
+                                     command=partial(self.close_help,
+                                                     partner))
         self.dismiss_button.grid(row=2, padx=10, pady=10)
+
+
+    # closes help dialogue (used by button and x at top of dialogue)
+    def close_help(self, partner):
+        # Put help button back to normal...
+        partner.to_help_button.config(state=NORMAL)
+        self.help_box.destroy()
 
 # main routine
 if __name__ == "__main__":
